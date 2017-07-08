@@ -3,6 +3,9 @@
 // Web Scraper using node, cheerio, and phantom to scrape prnt.sc
 // Licenses: Cheerio (MIT), Phantom (ISC)
 
+var app = require('express')();
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
 var phantom = require('phantom');
 var cheerio = require('cheerio');
 
@@ -48,7 +51,7 @@ function parseUrl () {
           var img = $('#screenshot-image').attr('src'); // looks for 'screenshot-image'
           // filtering image
           if (filterURL(img)) {
-            console.log(img);
+              io.emit('update-image', img);
           } else {
             console.log('Image not found. Please wait while next url is parsed.. \n');
           }
@@ -60,5 +63,11 @@ function parseUrl () {
   });
 }
 
-console.log('Starting scraper, please wait while page is being loaded. (Ctrl+C to terminate)');
-parseUrl();
+app.get('*', function(req, res) {
+    res.sendFile(__dirname + '/index.html');
+});
+
+http.listen(80, function() {
+    console.log('Starting scraper, please wait while page is being loaded. (Ctrl+C to terminate)');
+    parseUrl();
+});
